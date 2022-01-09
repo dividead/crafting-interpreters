@@ -7,25 +7,8 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-// const Tokens = [
-//   // Single-character tokens.
-// "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
-// "COMMA", "DOT", "MINUS", "PLUS", "SEMICOLON", "SLASH", "STAR",
-//   // One or two character tokens.
-// "BANG", "BANG_EQUAL",
-// "EQUAL", "EQUAL_EQUAL",
-// "GREATER", "GREATER_EQUAL",
-// "LESS", "LESS_EQUAL",
-//   // Literals.
-// "IDENTIFIER", "STRING", "NUMBER",
-//  // Keywords.
-// "AND", "CLASS", "ELSE", "FALSE", "FUN", "FOR", "IF", "NIL", "OR",
-// "PRINT", "RETURN", "SUPER", "THIS", "TRUE", "VAR", "WHILE",
-
-// "EOF"
-// ].reduce((m, key) => (m[key] = key, m), {})
-
-const Tokens = {
+const T = {
+    // Single-character t.
     LEFT_PAREN: 'LEFT_PAREN',
     RIGHT_PAREN: 'RIGHT_PAREN',
     LEFT_BRACE: 'LEFT_BRACE',
@@ -37,6 +20,8 @@ const Tokens = {
     SEMICOLON: 'SEMICOLON',
     SLASH: 'SLASH',
     STAR: 'STAR',
+
+    // One or two character t.
     BANG: 'BANG',
     BANG_EQUAL: 'BANG_EQUAL',
     EQUAL: 'EQUAL',
@@ -45,9 +30,13 @@ const Tokens = {
     GREATER_EQUAL: 'GREATER_EQUAL',
     LESS: 'LESS',
     LESS_EQUAL: 'LESS_EQUAL',
+
+    // Literals.
     IDENTIFIER: 'IDENTIFIER',
     STRING: 'STRING',
     NUMBER: 'NUMBER',
+
+    // Keywords.
     AND: 'AND',
     CLASS: 'CLASS',
     ELSE: 'ELSE',
@@ -64,28 +53,29 @@ const Tokens = {
     TRUE: 'TRUE',
     VAR: 'VAR',
     WHILE: 'WHILE',
+
     EOF: 'EOF'
 }
 
 const exp = /[a-zA-Z_][a-zA-Z_0-9]*/
 
 const keywords = new Map();
-keywords.set("and", Tokens.AND);
-keywords.set("class", Tokens.CLASS);
-keywords.set("else", Tokens.ELSE);
-keywords.set("false", Tokens.FALSE);
-keywords.set("for", Tokens.FOR);
-keywords.set("fun", Tokens.FUN);
-keywords.set("if", Tokens.IF);
-keywords.set("nil", Tokens.NIL);
-keywords.set("or", Tokens.OR);
-keywords.set("print", Tokens.PRINT);
-keywords.set("return", Tokens.RETURN);
-keywords.set("super", Tokens.SUPER);
-keywords.set("this", Tokens.THIS);
-keywords.set("true", Tokens.TRUE);
-keywords.set("var", Tokens.VAR);
-keywords.set("while", Tokens.WHILE);
+keywords.set("and", T.AND);
+keywords.set("class", T.CLASS);
+keywords.set("else", T.ELSE);
+keywords.set("false", T.FALSE);
+keywords.set("for", T.FOR);
+keywords.set("fun", T.FUN);
+keywords.set("if", T.IF);
+keywords.set("nil", T.NIL);
+keywords.set("or", T.OR);
+keywords.set("print", T.PRINT);
+keywords.set("return", T.RETURN);
+keywords.set("super", T.SUPER);
+keywords.set("this", T.THIS);
+keywords.set("true", T.TRUE);
+keywords.set("var", T.VAR);
+keywords.set("while", T.WHILE);
 
 const main = () => {
     const token = (type, lexeme, literal, line) => {
@@ -112,6 +102,7 @@ const main = () => {
             let line = 1
             const tokens = []
 
+            const isAtEnd = () => current >= source.length
             const advance = () => source[current++]
             const addTokenWithLiteral = (type, literal) => {
                 let text = source.substring(start, current)
@@ -148,7 +139,7 @@ const main = () => {
 
                 // Trim the surrounding quotes.
                 let value = source.substring(start + 1, current - 1);
-                addTokenWithLiteral(Tokens.STRING, value);
+                addTokenWithLiteral(T.STRING, value);
             }
 
             const isDigit = (c) => c >= '0' && c <= '9'
@@ -171,15 +162,15 @@ const main = () => {
                     while (isDigit(peek())) advance()
                 }
 
-                addToken(Tokens.NUMBER, Number.parseFloat(source.substring(start, current)))
+                addToken(T.NUMBER, Number.parseFloat(source.substring(start, current)))
             }
 
             const _identifier = () => {
                 while (isAlphaNumeric(peek())) advance()
 
                 let text = source.substring(start, current)
-                let type = keywords.get(text) ?? Tokens.IDENTIFIER
-                // if (type == null) type = Tokens.IDENTIFIER
+                let type = keywords.get(text) ?? T.IDENTIFIER
+                // if (type == null) type = T.IDENTIFIER
 
                 addToken(type)
             }
@@ -187,28 +178,28 @@ const main = () => {
             const scanToken = () => {
                 let c = advance();
                 switch (c) {
-                    case '(': addToken(Tokens.LEFT_PAREN); break
-                    case ')': addToken(Tokens.RIGHT_PAREN); break
-                    case '{': addToken(Tokens.LEFT_BRACE); break
-                    case '}': addToken(Tokens.RIGHT_BRACE); break
-                    case ',': addToken(Tokens.COMMA); break
-                    case '.': addToken(Tokens.DOT); break
-                    case '-': addToken(Tokens.MINUS); break
-                    case '+': addToken(Tokens.PLUS); break
-                    case ';': addToken(Tokens.SEMICOLON); break
-                    case '*': addToken(Tokens.STAR); break
+                    case '(': addToken(T.LEFT_PAREN); break
+                    case ')': addToken(T.RIGHT_PAREN); break
+                    case '{': addToken(T.LEFT_BRACE); break
+                    case '}': addToken(T.RIGHT_BRACE); break
+                    case ',': addToken(T.COMMA); break
+                    case '.': addToken(T.DOT); break
+                    case '-': addToken(T.MINUS); break
+                    case '+': addToken(T.PLUS); break
+                    case ';': addToken(T.SEMICOLON); break
+                    case '*': addToken(T.STAR); break
 
                     case '!':
-                        addToken(match('=') ? Tokens.BANG_EQUAL : Tokens.BANG)
+                        addToken(match('=') ? T.BANG_EQUAL : T.BANG)
                         break;
                     case '=':
-                        addToken(match('=') ? Tokens.EQUAL_EQUAL : Tokens.EQUAL)
+                        addToken(match('=') ? T.EQUAL_EQUAL : T.EQUAL)
                         break;
                     case '<':
-                        addToken(match('=') ? Tokens.LESS_EQUAL : Tokens.LESS)
+                        addToken(match('=') ? T.LESS_EQUAL : T.LESS)
                         break;
                     case '>':
-                        addToken(match('=') ? Tokens.GREATER_EQUAL : Tokens.GREATER)
+                        addToken(match('=') ? T.GREATER_EQUAL : T.GREATER)
                         break;
 
                     case '/':
@@ -216,7 +207,7 @@ const main = () => {
                             // A comment goes until the end of the line.
                             while (peek() != '\n' && !isAtEnd()) advance()
                         } else {
-                            addToken(Tokens.SLASH)
+                            addToken(T.SLASH)
                         }
                         break;
 
@@ -244,14 +235,12 @@ const main = () => {
                 }
             }
 
-            const isAtEnd = () => current >= source.length
-
             while (!isAtEnd()) {
                 start = current
                 scanToken()
             }
 
-            tokens.push(token(Tokens.EOF, '', null, line))
+            tokens.push(token(T.EOF, '', null, line))
             return tokens
         }
 
