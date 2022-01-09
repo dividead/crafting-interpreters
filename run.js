@@ -69,6 +69,24 @@ const Tokens = {
 
 const exp = /[a-zA-Z_][a-zA-Z_0-9]*/
 
+const keywords = new Map();
+keywords.set("and", Tokens.AND);
+keywords.set("class", Tokens.CLASS);
+keywords.set("else", Tokens.ELSE);
+keywords.set("false", Tokens.FALSE);
+keywords.set("for", Tokens.FOR);
+keywords.set("fun", Tokens.FUN);
+keywords.set("if", Tokens.IF);
+keywords.set("nil", Tokens.NIL);
+keywords.set("or", Tokens.OR);
+keywords.set("print", Tokens.PRINT);
+keywords.set("return", Tokens.RETURN);
+keywords.set("super", Tokens.SUPER);
+keywords.set("this", Tokens.THIS);
+keywords.set("true", Tokens.TRUE);
+keywords.set("var", Tokens.VAR);
+keywords.set("while", Tokens.WHILE);
+
 const main = () => {
     const token = (type, lexeme, literal, line) => {
         return {
@@ -133,6 +151,39 @@ const main = () => {
                 addTokenWithLiteral(Tokens.STRING, value);
             }
 
+            const isDigit = (c) => c >= '0' && c <= '9'
+            const isAlpha = (c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+            const isAlphaNumeric = (c) => isAlpha(c) || isDigit(c)
+
+            const peekNext = () => {
+                if (current + 1 >= source.length) return '\0'
+                return source[current + 1]
+            }
+
+            const _number = () => {
+                while (isDigit(peek())) advance()
+
+                // Look for a fractional part.
+                if (peek() == '.' && isDigit(peekNext())) {
+                    // Consume the "."
+                    advance()
+
+                    while (isDigit(peek())) advance()
+                }
+
+                addToken(Tokens.NUMBER, Number.parseFloat(source.substring(start, current)))
+            }
+
+            const _identifier = () => {
+                while (isAlphaNumeric(peek())) advance()
+
+                let text = source.substring(start, current)
+                let type = keywords.get(text) ?? Tokens.IDENTIFIER
+                // if (type == null) type = Tokens.IDENTIFIER
+
+                addToken(type)
+            }
+
             const scanToken = () => {
                 let c = advance();
                 switch (c) {
@@ -182,7 +233,13 @@ const main = () => {
                     case '"': _string(); break
 
                     default:
-                        error(line, 'Unexpected character.')
+                        if (isDigit(c)) {
+                            _number()
+                        } else if (isAlpha(c)) {
+                            _identifier()
+                        } else {
+                            error(line, 'Unexpected character.')
+                        }
                         break
                 }
             }
